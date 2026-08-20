@@ -1,6 +1,8 @@
 """
-Query the Climate Impact Atlas (klimaateffectatlas.nl) WMS service via
-GetFeatureInfo for every (location, layer) pair, and save the raw values.
+Query two official Dutch government WMS services via GetFeatureInfo for
+every (location, layer) pair, and save the raw values: the Climate Impact
+Atlas (klimaateffectatlas.nl) and RIVM's GCN/GDN nitrogen deposition
+service. See layers.py for source details.
 
 Usage:
     python src/extract_climate_risk.py
@@ -11,7 +13,7 @@ from pathlib import Path
 
 import requests
 
-from layers import LAYERS, NODATA_INT32, NODATA_NO_PREDICTION
+from layers import LAYERS, WMS_URL, NODATA_INT32, NODATA_NO_PREDICTION
 from locations import LOCATIONS
 
 OUT_PATH = Path(__file__).resolve().parent.parent / "data" / "raw" / "climate_risk.csv"
@@ -20,7 +22,7 @@ DELTA = 0.0015  # ~150m half-width query box around each point -- small enough
                  # avoid missing the raster's own pixel grid entirely.
 
 
-def query_point(layer_name, lat, lon, retries=3):
+def query_point(layer_name, lat, lon, wms_url=WMS_URL, retries=3):
     bbox = f"{lon-DELTA},{lat-DELTA},{lon+DELTA},{lat+DELTA}"
     params = {
         "SERVICE": "WMS", "VERSION": "1.1.1", "REQUEST": "GetFeatureInfo",
@@ -28,10 +30,9 @@ def query_point(layer_name, lat, lon, retries=3):
         "BBOX": bbox, "WIDTH": 3, "HEIGHT": 3, "X": 1, "Y": 1,
         "SRS": "EPSG:4326", "INFO_FORMAT": "application/json",
     }
-    from layers import WMS_URL
     for attempt in range(retries):
         try:
-            resp = requests.get(WMS_URL, params=params, timeout=30)
+            resp = requests.get(wms_url, params=params, timeout=30)
             resp.raise_for_status()
             data = resp.json()
             feats = data.get("features", [])
@@ -67,7 +68,7 @@ def main():
         for i, (name, province, lat, lon, featured) in enumerate(LOCATIONS):
             row = {"name": name, "province": province, "lat": lat, "lon": lon, "featured": featured}
             for key, meta in LAYERS.items():
-                val = query_point(meta["layer"], lat, lon)
+                val = query_point(meta["layer"], lat, lon, wms_url=meta.get("wms_url", WMS_URL))
                 row[key] = val
             writer.writerow(row)
             rows_written += 1

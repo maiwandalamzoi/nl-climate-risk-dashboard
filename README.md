@@ -1,10 +1,11 @@
 # Netherlands Climate Risk Dashboard
 
-Real flood, drought, heat, and land-subsidence risk data for 34 locations across the
-Netherlands — nationwide, with extra density in Gelderland / the Arnhem-Nijmegen region —
-sourced directly from the Dutch government's official Climate Impact Atlas
-(klimaateffectatlas.nl). No modeling or prediction here: this reports exactly what the
-official service reports, with the same categories and units as its own legend.
+Real flood, drought, heat, land-subsidence, and **nitrogen deposition** risk data for 34
+locations across the Netherlands — nationwide, with extra density in Gelderland / the
+Arnhem-Nijmegen region — sourced directly from two official Dutch government services: the
+Climate Impact Atlas (klimaateffectatlas.nl) and RIVM's GCN/GDN nitrogen deposition service.
+No modeling or prediction here: this reports exactly what the official sources report, with
+the same categories and units as their own legends.
 
 Author: **Maiwand Jan Alamzoi** — [m.alamzoi123@gmail.com](mailto:m.alamzoi123@gmail.com) · [github.com/maiwandalamzoi](https://github.com/maiwandalamzoi)
 
@@ -28,9 +29,9 @@ papered over.
 
 ## Data source
 
-All data: the official [Climate Impact Atlas](https://www.klimaateffectatlas.nl/en/) (CC BY 4.0,
-attribution: Climate Impact Atlas, 2026), queried live via its public WMS `GetFeatureInfo`
-service — no API key required. 8 layers, chosen to cover flood, drought, heat, and subsidence:
+**Climate Impact Atlas** ([klimaateffectatlas.nl](https://www.klimaateffectatlas.nl/en/), CC BY
+4.0, attribution: Climate Impact Atlas, 2026) — queried live via its public WMS
+`GetFeatureInfo` service, no API key required:
 
 | Layer | Unit | Source scenario |
 |---|---|---|
@@ -42,6 +43,18 @@ service — no API key required. 8 layers, chosen to cover flood, drought, heat,
 | Feels-like temperature, extreme heat | °C | Heatwave event |
 | Land subsidence by 2050 | m | High estimate |
 | Land subsidence by 2100 | m | High estimate |
+
+**RIVM GCN/GDN** ([data.rivm.nl](https://www.rivm.nl/gcn-gdn-kaarten), the national nitrogen
+concentration/deposition maps), queried via its own WMS `GetFeatureInfo` service, endpoint and
+exact layer names found by intercepting the real network requests of RIVM's own official map
+viewer (not guessed):
+
+| Layer | Unit | Note |
+|---|---|---|
+| Total nitrogen deposition, 2025 | mol N/ha/yr | — |
+| Potential acidification, 2025 | mol potential acid/ha/yr | — |
+| Reduced nitrogen (NHx), 2025 | mol N/ha/yr | Predominantly agriculture/livestock-derived |
+| Oxidized nitrogen (NOy), 2025 | mol N/ha/yr | Predominantly traffic/industry-derived |
 
 Category thresholds and units in the dashboard's "About the data" tab are pulled **verbatim**
 from each layer's own official legend (via `GetLegendGraphic`) — not estimated.
@@ -73,6 +86,11 @@ from each layer's own official legend (via `GetLegendGraphic`) — not estimated
   flood-prone area" at their exact center points for the small-probability scenario — plausible
   given concentrated flood-defense investment in city centers, reported as-is rather than
   reinterpreted.
+- **Nijmegen (2,027 mol N/ha/yr) has the highest total nitrogen deposition** of all 34
+  locations, and **NHx (agriculture-derived ammonia) exceeds NOy (traffic/industry-derived)
+  at every single location** — both consistent with the well-documented reality that
+  agriculture, not traffic, is the dominant source of the Netherlands' nitrogen deposition,
+  concentrated in livestock-dense Gelderland/Overijssel/Noord-Brabant.
 
 ## Reproduce it
 
